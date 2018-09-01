@@ -4,6 +4,7 @@
 import sys
 import os
 import getopt
+import re
 
 # Global options with default values.
 verbose = False
@@ -38,6 +39,12 @@ def main():
         for m in sorted(missing):
             print "- %s" % m
 
+def cleanMovieNames(movies):
+    def cleanMovieName(title):
+        title = re.sub(r" *: *", " - ", title)
+        return title
+    return map(cleanMovieName, movies)
+
 def checkMovies(movies, dirs):
     checked = {}
     for m in movies:
@@ -61,8 +68,8 @@ def subdirsOfMovieDir(moviedir):
 
 def moviesFromFile(moviefile):
     with open(moviefile) as f:
-        content = [x.strip() for x in f.readlines()]
-        return content
+        movies = [x.strip() for x in f.readlines()]
+        return cleanMovieNames(movies)
 
 def verifyConfiguration():
     errors = False
