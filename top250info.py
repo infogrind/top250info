@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import os
 import getopt
 
 # Global options with default values.
@@ -16,7 +17,28 @@ def main():
     args = parse_options(sys.argv[1:])
     if verbose:
         debugPrintConfig()
+    verifyConfiguration()
 
+
+def verifyConfiguration():
+    errors = False
+    if moviedir is None:
+        error("Movie directory not set. See help (-h).")
+        errors = True
+    elif not os.path.isdir(moviedir):
+        error("Movie directory does not exist: %s" % moviedir)
+        errors = True
+    elif not os.access(moviedir, os.R_OK):
+        error("Movie directory is not readable: %s" % moviedir)
+        errors = True
+    if not os.path.isfile(moviefile):
+        error("Movie file does not exist: %s" % moviefile)
+        errors = True
+    elif not os.access(moviefile, os.R_OK):
+        error("Movie file is not readable: %s" % moviefile)
+    
+    if errors:
+        sys.exit(1)
 
 
 def debugPrintConfig():
@@ -51,7 +73,7 @@ The program then summarizes which movies are missing.
 def parse_options(args):
 
     # Access global variables
-    global verbose, output
+    global verbose, output, moviefile, moviedir
 
     # Parse options using Getopt; display an error and exit if options could
     # not be parsed.
@@ -85,6 +107,15 @@ def debug(s):
     if verbose:
         sys.stderr.write(s + "\n")
 
+def error(s):
+    sys.stderr.write("ERROR: %s\n" % s)
+
+def fatal(s):
+    sys.stderr.write("FATAL ERROR: %s\n" % s)
+    sys.exit(1)
+
+def warning(s):
+    sys.stderr.write("WARNING: %s\n" % s)
 
 # This is the most important line: it calls the main function if this program is
 # called directly.
