@@ -22,7 +22,7 @@ def main():
         debugPrintConfig()
     verifyConfiguration()
 
-    movies = moviesFromFile(moviefile)
+    movies = cleanMovieNames(moviesFromFile(moviefile))
     dirs = subdirsOfMovieDir(moviedir)
     checked = checkMovies(movies, dirs)
     present = {k: v for k, v in checked.items() if v}
@@ -69,7 +69,7 @@ def subdirsOfMovieDir(moviedir):
 def moviesFromFile(moviefile):
     with open(moviefile) as f:
         movies = [x.strip() for x in f.readlines()]
-        return cleanMovieNames(movies)
+        return movies
 
 def verifyConfiguration():
     errors = False
