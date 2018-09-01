@@ -19,6 +19,50 @@ def main():
         debugPrintConfig()
     verifyConfiguration()
 
+    movies = moviesFromFile(moviefile)
+    dirs = subdirsOfMovieDir(moviedir)
+    checked = checkMovies(movies, dirs)
+    present = {k: v for k, v in checked.items() if v}
+    missing = {k: v for k, v in checked.items() if not v}
+
+    print "Locally prsent Top 250 movies:"
+    for m in sorted(present):
+        print "- %s" % m
+
+    print
+    print "Locally missing Top 250 movies:"
+    for m in sorted(missing):
+        print "- %s" % m
+
+def checkMovies(movies, dirs):
+    checked = {}
+    for m in movies:
+        if m in dirs:
+            debug("Found movie %s locally" % m)
+            checked[m] = True
+        else:
+            debug("Did NOT found movie %s locally" % m)
+            checked[m] = False
+    return checked
+
+def subdirsOfMovieDir(moviedir):
+    dirs = {}
+    for d in os.listdir(moviedir):
+        debug("Entry of movie directory: %s" % d)
+        if os.path.isdir(os.path.join(moviedir, d)):
+            debug("It is a directory")
+            dirs[d] = True
+        else:
+            debug("It is not a directory")
+
+    debug("Found %d movie subdirectories" % len(dirs))
+    return dirs
+    
+
+def moviesFromFile(moviefile):
+    with open(moviefile) as f:
+        content = [x.strip() for x in f.readlines()]
+        return content
 
 def verifyConfiguration():
     errors = False
