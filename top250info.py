@@ -104,13 +104,13 @@ in the file.
 The program then summarizes which movies are missing.
 
   Options:
-  -h        Show this help text.
-  -v        Display verbose output.
-  -o <file> Write output to <file> or to stdout if <file> is '-'.
   -f <file> Reads the top 250 movies from the given file
             (default value: top250.txt)
   -d <dir>  The directory where the movies are stored locally.
             (mandatory argument)
+  -h        Show this help text.
+  -v        Display verbose output.
+  -o <file> Write output to <file> or to stdout if <file> is '-'.
   """
 
 
