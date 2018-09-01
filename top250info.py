@@ -11,6 +11,8 @@ output = "-"
 configfile = "top250info.cfg"
 moviefile = "top250.txt"
 moviedir = None
+showpresent = False
+showmissing = False
 
 
 def main():
@@ -25,14 +27,16 @@ def main():
     present = {k: v for k, v in checked.items() if v}
     missing = {k: v for k, v in checked.items() if not v}
 
-    print "Locally prsent Top 250 movies:"
-    for m in sorted(present):
-        print "- %s" % m
+    if showpresent or (not showpresent and not showmissing):
+        print "Locally present Top 250 movies:"
+        for m in sorted(present):
+            print "- %s" % m
+        print
 
-    print
-    print "Locally missing Top 250 movies:"
-    for m in sorted(missing):
-        print "- %s" % m
+    if showmissing or (not showpresent and not showmissing):
+        print "Locally missing Top 250 movies:"
+        for m in sorted(missing):
+            print "- %s" % m
 
 def checkMovies(movies, dirs):
     checked = {}
@@ -108,6 +112,10 @@ The program then summarizes which movies are missing.
             (default value: top250.txt)
   -d <dir>  The directory where the movies are stored locally.
             (mandatory argument)
+  -m        Display the list of missing movies.
+  -p        Display the list of present movies.
+            By default, both lists are shown. But if you explicitly specify only
+            -m or -p, then the respective other list is not shown.
   -h        Show this help text.
   -v        Display verbose output.
   -o <file> Write output to <file> or to stdout if <file> is '-'.
@@ -117,12 +125,12 @@ The program then summarizes which movies are missing.
 def parse_options(args):
 
     # Access global variables
-    global verbose, output, moviefile, moviedir
+    global verbose, output, moviefile, moviedir, showpresent, showmissing
 
     # Parse options using Getopt; display an error and exit if options could
     # not be parsed.
     try:
-        opts, args = getopt.getopt(args, "o:hvd:f:")
+        opts, args = getopt.getopt(args, "o:hvd:f:pm")
     except getopt.GetoptError, err:
         print str(err)
         usage()
@@ -141,6 +149,10 @@ def parse_options(args):
             moviefile = val
         elif opt == "-d":
             moviedir = val
+        elif opt == "-p":
+            showpresent = True
+        elif opt == "-m":
+            showmissing = True
         else:
             assert False, "unhandled option"
 
