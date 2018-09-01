@@ -14,6 +14,12 @@ moviefile = "top250.txt"
 moviedir = None
 showpresent = False
 showmissing = False
+fuzzy = False
+
+# Minimal and maximal fuzzy match score to count as "approximate" match
+# See documentation at https://github.com/seatgeek/fuzzywuzzy
+fuzzymin = 80
+fuzzymax = 99
 
 
 def main():
@@ -23,21 +29,39 @@ def main():
     verifyConfiguration()
 
     movies = cleanMovieNames(moviesFromFile(moviefile))
-    dirs = subdirsOfMovieDir(moviedir)
-    checked = checkMovies(movies, dirs)
-    present = {k: v for k, v in checked.items() if v}
-    missing = {k: v for k, v in checked.items() if not v}
+    if fuzzy:
+        import fuzzywuzzy.process
+        import fuzzywuzzy.fuzz
 
-    if showpresent or (not showpresent and not showmissing):
-        print "Locally present Top 250 movies:"
-        for m in sorted(present):
-            print "- %s" % m
-        print
+        print "Approximate title matches:"
+        choices = subdirsOfMovieDir(moviedir).keys()
+        for m in movies:
+            result = fuzzywuzzy.process.extractOne(m, choices,
+                    scorer=fuzzywuzzy.fuzz.token_sort_ratio)
+            if result is None:
+                continue
+            (name, score) = result
+            if score >= fuzzymin and score <= fuzzymax:
+                print("- %s" % m)
+                print("  Match(%d): %s" % (score, name))
 
-    if showmissing or (not showpresent and not showmissing):
-        print "Locally missing Top 250 movies:"
-        for m in sorted(missing):
-            print "- %s" % m
+        print ""
+    else:
+        dirs = subdirsOfMovieDir(moviedir)
+        checked = checkMovies(movies, dirs)
+        present = {k: v for k, v in checked.items() if v}
+        missing = {k: v for k, v in checked.items() if not v}
+
+        if showpresent or (not showpresent and not showmissing):
+            print "Locally present Top 250 movies:"
+            for m in sorted(present):
+                print "- %s" % m
+            print
+
+        if showmissing or (not showpresent and not showmissing):
+            print "Locally missing Top 250 movies:"
+            for m in sorted(missing):
+                print "- %s" % m
 
 def cleanMovieNames(movies):
     def cleanMovieName(title):
@@ -119,6 +143,12 @@ The program then summarizes which movies are missing.
   -p        Display the list of present movies.
             By default, both lists are shown. But if you explicitly specify only
             -m or -p, then the respective other list is not shown.
+  -z        Use fuzzy comparison to list approximate matches. This is useful if
+            you consider renaming your movies locally, or to add additional
+            rules for movie name cleanup. (This option requires the fuzzywuzzy
+            module to be available). With this option set, the program displays
+            those local movies that are a close, but not exact match to the top
+            250 list. (If this is set, the -m and -p options have no effect.)
   -h        Show this help text.
   -v        Display verbose output.
   -o <file> Write output to <file> or to stdout if <file> is '-'.
@@ -129,11 +159,12 @@ def parse_options(args):
 
     # Access global variables
     global verbose, output, moviefile, moviedir, showpresent, showmissing
+    global fuzzy
 
     # Parse options using Getopt; display an error and exit if options could
     # not be parsed.
     try:
-        opts, args = getopt.getopt(args, "o:hvd:f:pm")
+        opts, args = getopt.getopt(args, "o:hvd:f:pmz")
     except getopt.GetoptError, err:
         print str(err)
         usage()
@@ -156,6 +187,8 @@ def parse_options(args):
             showpresent = True
         elif opt == "-m":
             showmissing = True
+        elif opt == "-z":
+            fuzzy = True
         else:
             assert False, "unhandled option"
 
