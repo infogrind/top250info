@@ -53,11 +53,7 @@ def subdirsOfMovieDir(moviedir):
     dirs = {}
     for d in os.listdir(moviedir):
         debug("Entry of movie directory: %s" % d)
-        if os.path.isdir(os.path.join(moviedir, d)):
-            debug("It is a directory")
-            dirs[d] = True
-        else:
-            debug("It is not a directory")
+        dirs[d] = True
 
     debug("Found %d movie subdirectories" % len(dirs))
     return dirs
