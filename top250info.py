@@ -29,39 +29,46 @@ def main():
     verifyConfiguration()
 
     movies = cleanMovieNames(moviesFromFile(moviefile))
+    dirs = subdirsOfMovieDir(moviedir)
+
     if fuzzy:
-        import fuzzywuzzy.process
-        import fuzzywuzzy.fuzz
-
-        print "Approximate title matches:"
-        choices = subdirsOfMovieDir(moviedir).keys()
-        for m in movies:
-            result = fuzzywuzzy.process.extractOne(m, choices,
-                    scorer=fuzzywuzzy.fuzz.token_sort_ratio)
-            if result is None:
-                continue
-            (name, score) = result
-            if score >= fuzzymin and score <= fuzzymax:
-                print("- %s" % m)
-                print("  Match(%d): %s" % (score, name))
-
-        print ""
+        showApproximateMatches(dirs, movies)
     else:
-        dirs = subdirsOfMovieDir(moviedir)
-        checked = checkMovies(movies, dirs)
-        present = {k: v for k, v in checked.items() if v}
-        missing = {k: v for k, v in checked.items() if not v}
+        processMoviesNormally(dirs, movies)
 
-        if showpresent or (not showpresent and not showmissing):
-            print "Locally present Top 250 movies:"
-            for m in sorted(present):
-                print "- %s" % m
-            print
+def processMoviesNormally(dirs, movies):
+    checked = checkMovies(movies, dirs)
+    present = {k: v for k, v in checked.items() if v}
+    missing = {k: v for k, v in checked.items() if not v}
 
-        if showmissing or (not showpresent and not showmissing):
-            print "Locally missing Top 250 movies:"
-            for m in sorted(missing):
-                print "- %s" % m
+    if showpresent or (not showpresent and not showmissing):
+        print "Locally present Top 250 movies:"
+        for m in sorted(present):
+            print "- %s" % m
+        print
+
+    if showmissing or (not showpresent and not showmissing):
+        print "Locally missing Top 250 movies:"
+        for m in sorted(missing):
+            print "- %s" % m
+
+def showApproximateMatches(dirs, movies):
+    import fuzzywuzzy.process
+    import fuzzywuzzy.fuzz
+
+    print "Approximate title matches:"
+    choices = dirs.keys()
+    for m in movies:
+        result = fuzzywuzzy.process.extractOne(m, choices,
+                scorer=fuzzywuzzy.fuzz.token_sort_ratio)
+        if result is None:
+            continue
+        (name, score) = result
+        if score >= fuzzymin and score <= fuzzymax:
+            print("- %s" % m)
+            print("  Match(%d): %s" % (score, name))
+
+    print ""
 
 def cleanMovieNames(movies):
     def cleanMovieName(title):
